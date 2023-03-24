@@ -162,44 +162,60 @@ body.loggedin {
 }
 
 .popup {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: #ffffff;
-    padding: 20px;
-    border: 2px solid black;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    border-radius: 5px;
-    z-index: 999;
-    max-width: 80%;
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 9999;
 }
 
-.popup h2 {
-    margin-top: 0;
-    font-size: 24px;
-    color: #e74c3c;
+.popup-content {
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  background-color: white;
+  padding: 20px;
+  text-align: center;
+  border-radius: 5px;
 }
 
-.popup p {
-    font-size: 18px;
-    line-height: 1.5;
-    margin-bottom: 20px;
+.popup-content p {
+  margin-bottom: 20px;
 }
 
-.popup button {
-    display: block;
-    margin: 0 auto;
-    padding: 10px 20px;
-    background-color: #e74c3c;
-    color: #ffffff;
+.ok-btn, .cancel-btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  margin: 5px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.ok-btn:hover, .cancel-btn:hover {
+  background-color: #3e8e41;
+}
+
+.close-btn {
+    background-color: rgba(0,0,0,0);
     border: none;
-    border-radius: 5px;
+    position: absolute;
+    top: 5px;
+    right: 10px;
     font-size: 16px;
+    font-weight: bold;
+    color: #aaa;
     cursor: pointer;
 }
 
-.popup button:hover {
-    background-color: #d63031;
+.close-btn:hover {
+  color: black;
 }
+
+
