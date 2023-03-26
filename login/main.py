@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from flask_mysqldb import MySQL
+import mysql.connector
 import MySQLdb.cursors
 import re
 import hashlib
@@ -141,34 +142,42 @@ def load_users():
         return render_template('user.html', employee=employee)
     return redirect(url_for('login'))
 
-# Xử lý yêu cầu xoá tài khoản
-@app.route('/delete_account', methods=['POST'])
-def delete_account():
-    id = request.form['id']
-    cursor = mysql.cursor()
-    sql = "DELETE FROM `employee` WHERE `id` = %s"
-    val = (id,)
-    cursor.execute(sql, val)
-    mysql.commit()
-    return "Employee has been deleted successfully!"
+# Xử lý yêu cầu xoá user
+@app.route('/delete_employee/<int:id>', methods=['DELETE'])
+def delete_employee(id):
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute("DELETE FROM employee WHERE id = %s", (id,))
+    mysql.connection.commit()
+    message = f"Employee with id {id} has been deleted."
+    return jsonify({"message": message})
 
-@app.route('/', methods=['POST'])
-def show_popup():
-    message = request.form['message']
-    return render_template('user.html', message=message)
-
-#@app.route('/login/users/<int:user_id>/edit', methods=['GET', 'POST'])
-#def edit_user(user_id):
-    #user = User.query.get(user_id)
-    #if request.method == 'POST':
-        #user.username = request.form['username']
-       #user.email = request.form['email']
-        #user.phone = request.form['phone']
-        #user.address = request.form['address']
-        #db.session.commit()
-        #flash('User information updated successfully')
-        #return redirect(url_for('user', user_id=user_id))
-    #return render_template('edit_user.html', user=user)
+# Xử lý yêu cầu edit user
+@app.route('/edit_employee/<int:id>', methods=['GET', 'POST'])
+def edit_employee(id):
+    # Lấy thông tin của employee từ MySQL
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cur.execute("SELECT * FROM employee WHERE id = %s", [id])
+    employee = cur.fetchone()
+    cur.close()
+    if request.method == 'POST':
+        # Lấy thông tin employee từ form
+        lastname = request.form['lastname']
+        firstname = request.form['firstname']
+        department = request.form['department']
+        age = request.form['age']
+        phone_no = request.form['phone_no']
+        email = request.form['email']
+        address = request.form['address']
+        # Cập nhật thông tin của employee vào MySQL
+        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cur.execute(
+            "UPDATE employee SET lastname=%s, firstname=%s, department=%s, age=%s, phone_no=%s, email=%s, address=%s WHERE id=%s",
+            (lastname, firstname, department, age, phone_no, email, address, id))
+        mysql.connection.commit()
+        cur.close()
+        message = f"Employee information id {id} updated successfully"
+        return jsonify({"message": message})
+    return jsonify(employee)
 
 if __name__ == "__main__":
     app.run(debug=True)

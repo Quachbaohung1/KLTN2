@@ -5,7 +5,12 @@
         {% if employee %}
             {% for user in employee %}
                 <div>
+                    <!--Info about employee-->
                     <table>
+                        <tr>
+                            <td>ID:</td>
+                            <td>{{ user.id }}</td>
+                        </tr>
                         <tr>
                             <td>Lastname:</td>
                             <td>{{ user.lastname }}</td>
@@ -35,39 +40,128 @@
                             <td>{{ user.address }}</td>
                         </tr>
                     </table>
+                    <!--Create 3 btn Add, Fix, Delete-->
                     <tr>
-                        <button type="button" class="btn" onclick="showPopup()">Add</button>
-                        <button type="button" class="btn1" onclick="showPopup()">Fixed</button>
-                        <button type="button" class="btn2" onclick="showDeletePopup(1)">Delete</button>
+                        <button type="button" class="btn" >Add</button>
+                        <button type="button" class="btn1" onclick="showEditPopup({{ user.id }})">Edit</button>
+                        <button type="button" class="btn2" onclick="showPopup({{ user.id }})">Delete</button>
                     </tr>
-
+                    <!--Create popup delete employee-->
                     <div class="popup" id="popup">
                         <div class="popup-content">
                             <p>Are you sure you want to delete?</p>
-                            <button class="ok-btn" >OK</button>
+                            <button class="ok-btn" id="ok-btn">OK</button>
                             <button class="cancel-btn" onclick="hidePopup()">Cancel</button>
                             <button class="close-btn" onclick="hidePopup()" >x</button>
                         </div>
                     </div>
+                    <!--Popup for editing an employee-->
+                    <div class="popup1" id="edit-popup">
+                        <div class="popup-content1">
+                            <form id="edit-form">
+                                <h2>Edit Employee</h2>
+                                <label for="lastname">Lastname:</label>
+                                <input type="text" id="lastname" name="lastname"><br><br>
+                                <label for="firstname">Firstname:</label>
+                                <input type="text" id="firstname" name="firstname"><br><br>
+                                <label for="department">Department:</label>
+                                <input type="text" id="department" name="department"><br><br>
+                                <label for="age">Age:</label>
+                                <input type="text" id="age" name="age"><br><br>
+                                <label for="phone_no">Phone Number:</label>
+                                <input type="text" id="phone_no" name="phone_no"><br><br>
+                                <label for="email">Email:</label>
+                                <input type="email" id="email" name="email"><br><br>
+                                <label for="address">Address:</label>
+                                <input type="text" id="address" name="address"><br><br>
+                                <input type="hidden" id="edit-id" name="id">
+                                <button type="button" class="ok-btn1" onclick="submitEditForm()">OK</button>
+                                <button type="button" class="cancel-btn1" onclick="hideEditPopup()">Cancel</button>
+                                <button type="button" class="close-btn1" onclick="hideEditPopup()">x</button>
+                            </form>
+                        </div>
+                    </div>
                     <script type="text/javascript">
-		                var popup = document.getElementById("popup");
-                        function showPopup() {
+                        //The Javascript code about function delete
+                        var employeeId;
+                        function showPopup(id) {
+                            employeeId = id;
+                            var popup = document.getElementById("popup");
                             popup.style.display = "block";
                         }
-                        function showDeletePopup() {
-                            var xhr = new XMLHttpRequest();
-                            xhr.open("POST", "/delete_account", true);
-                            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                            xhr.onreadystatechange = function() {
-                                if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-                                    alert(this.responseText);
-                                }
-                            }
-                            xhr.send("id=" + id);
+                        function deleteEmployee() {
+                            fetch('/delete_employee/' + employeeId, {
+                                method: 'DELETE'
+                            })
+                           .then(response => response.json())
+                           .then(data => {
+                                console.log(data.message);
+                                location.reload();
+                           })
+                           .catch(error => console.error(error))
                         }
+                        document.getElementById("ok-btn").addEventListener("click", function() {
+                            deleteEmployee();
+                            hidePopup();
+                        });
                         function hidePopup() {
+                            var popup = document.getElementById("popup");
                             popup.style.display = "none";
                         }
+                        //The Javascript code about function edit
+                        function showEditPopup(id) {
+                            employeeId = id;
+                            // Get the popup element
+                            var popup = document.getElementById("edit-popup");
+                            // Set the popup to be visible
+                            popup.style.display = "block";
+                            // Get the form element
+                            var form = document.getElementById("edit-form");
+                            // Get the user data from the server using an AJAX call
+                            fetch("/edit_employee/" + employeeId)
+                                .then(response => response.json())
+                                .then(data => {
+                                    // Set the form values to the user data
+                                    form.elements["id"].value = data.id;
+                                    form.elements["lastname"].value = data.lastname;
+                                    form.elements["firstname"].value = data.firstname;
+                                    form.elements["department"].value = data.department;
+                                    form.elements["age"].value = data.age;
+                                    form.elements["phone_no"].value = data.phone_no;
+                                    form.elements["email"].value = data.email;
+                                    form.elements["address"].value = data.address;
+                                })
+                                .catch(error => console.error(error))
+                            }
+                        function hideEditPopup() {
+                            // Get the popup element
+                            var popup = document.getElementById("edit-popup");
+                            // Hide the popup
+                            popup.style.display = "none";
+                        }
+                        function submitEditForm(id) {
+                            employeeId = id;
+                            // Get the form element
+                            var form = document.getElementById("edit-form");
+                            // Get the form data
+                            var formData = new FormData(form);
+                            // Send the form data to the server using an AJAX call
+                            fetch("/edit_employee" + employeeId, {
+                                method: "POST",
+                                body: formData
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    console.log(data.message);
+                                    // Reload the page to see the updated data
+                                    location.reload();
+                                })
+                                .catch(error => console.error(error))
+                        }
+                        document.querySelector("#edit-popup .ok-btn1").addEventListener("click", function(event) {
+                            submitEditForm(event);
+                            hideEditPopup(event);
+                        });
 	                </script>
                 </div>
             {% endfor %}
