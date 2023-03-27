@@ -154,10 +154,10 @@ def delete_employee(id):
 @app.route('/edit_employee/<int:id>', methods=['GET', 'POST'])
 def edit_employee(id):
     # Lấy thông tin của employee từ MySQL
-    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cur.execute("SELECT * FROM employee WHERE id = %s", [id])
-    employee = cur.fetchone()
-    cur.close()
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute("SELECT * FROM employee WHERE id = %s", [id])
+    employee = cursor.fetchone()
+    cursor.close()
     if request.method == 'POST':
         # Lấy thông tin employee từ form
         lastname = request.form['lastname']
@@ -168,15 +168,37 @@ def edit_employee(id):
         email = request.form['email']
         address = request.form['address']
         # Cập nhật thông tin của employee vào MySQL
-        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cur.execute(
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(
             "UPDATE employee SET lastname=%s, firstname=%s, department=%s, age=%s, phone_no=%s, email=%s, address=%s WHERE id=%s",
             (lastname, firstname, department, age, phone_no, email, address, id))
         mysql.connection.commit()
-        cur.close()
+        cursor.close()
         message = f"Employee information id {id} updated successfully"
         return jsonify({"message": message})
     return jsonify(employee)
+
+# Xử lý yêu cầu add user
+@app.route('/add_employee', methods=['POST'])
+def add_employee():
+    # Lấy thông tin của employee từ form
+    lastname = request.form['lastname']
+    firstname = request.form['firstname']
+    department = request.form['department']
+    age = request.form['age']
+    phone_no = request.form['phone_no']
+    email = request.form['email']
+    address = request.form['address']
+    # Thêm thông tin của employee vào MySQL
+    cursor = mysql.connection.cursor()
+    cursor.execute(
+        "INSERT INTO employee (lastname, firstname, department, age, phone_no, email, address) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+        (lastname, firstname, department, age, phone_no, email, address))
+    mysql.connection.commit()
+    cursor.close()
+    # Trả về thông báo và địa chỉ URL cho việc hiển thị danh sách nhân viên
+    message = f"Employee {firstname} {lastname} added successfully"
+    return jsonify({"message": message, "url": "/employee_list"})
 
 if __name__ == "__main__":
     app.run(debug=True)

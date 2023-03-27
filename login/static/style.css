@@ -231,8 +231,9 @@ body.loggedin {
 }
 
 .popup-content1 {
+    position: relative;
     background-color: #fefefe;
-    margin: 4% auto; /* Center the popup */
+    margin: 1% auto; /* Center the popup */
     padding: 20px;
     width: 70%; /* Set the width of the popup */
     max-width: 500px; /* Set a maximum width for the popup */
@@ -272,8 +273,8 @@ button {
 .close-btn1 {
     border: none;
     position: absolute;
-    top: 70px;
-    right: 450px;
+    top: 10px;
+    right: 0px;
     font-size: 16px;
     font-weight: bold;
     background-color: #aaa;
@@ -285,4 +286,15 @@ button {
 }
 .close-btn1:hover {
   color: black;
+}
+.add-popup {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
 }
