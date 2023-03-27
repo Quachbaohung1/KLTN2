@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from flask_mysqldb import MySQL
-import mysql.connector
 import MySQLdb.cursors
 import re
 import hashlib

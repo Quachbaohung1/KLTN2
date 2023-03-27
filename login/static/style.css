@@ -232,17 +232,11 @@ body.loggedin {
 
 .popup-content1 {
     background-color: #fefefe;
-    margin: 15% auto; /* Center the popup */
+    margin: 4% auto; /* Center the popup */
     padding: 20px;
-    border: 1px solid #888;
-    width: 80%; /* Set the width of the popup */
+    width: 70%; /* Set the width of the popup */
     max-width: 500px; /* Set a maximum width for the popup */
     border-radius: 5px;
-}
-
-h2 {
-    font-size: 1.2em;
-    margin-bottom: 20px;
 }
 
 label {
@@ -276,9 +270,15 @@ button {
   cursor: pointer;
 }
 .close-btn1 {
+    border: none;
+    position: absolute;
+    top: 70px;
+    right: 450px;
+    font-size: 16px;
+    font-weight: bold;
     background-color: #aaa;
     color: #fff;
-    float: right;
+    cursor: pointer;
 }
 .ok-btn1:hover, .cancel-btn1:hover {
   background-color: #3e8e41;
