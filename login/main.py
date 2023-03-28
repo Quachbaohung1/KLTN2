@@ -144,9 +144,22 @@ def load_users():
 # Xử lý yêu cầu xoá user
 @app.route('/delete_employee/<int:id>', methods=['DELETE'])
 def delete_employee(id):
+    # Xóa employee với id được chỉ định
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute("DELETE FROM employee WHERE id = %s", (id,))
     mysql.connection.commit()
+    cursor.close()
+    # Lấy tất cả các id của employee
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute("SELECT id FROM employee")
+    employee_ids = [row['id'] for row in cursor.fetchall()]
+    cursor.close()
+    # Cập nhật lại ID của các employee còn lại
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    for i, employee_id in enumerate(employee_ids, 1):
+        cursor.execute("UPDATE employee SET id = %s WHERE id = %s", (i, employee_id))
+        mysql.connection.commit()
+    cursor.close()
     message = f"Employee with id {id} has been deleted."
     return jsonify({"message": message})
 
@@ -178,7 +191,15 @@ def edit_employee(id):
         return jsonify({"message": message})
     return jsonify(employee)
 
-# Xử lý yêu cầu add user
+# Lấy số ID lớn nhất trong danh sách nhân viên
+def get_max_id():
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT MAX(id) FROM employee")
+    result = cursor.fetchone()
+    cursor.close()
+    max_id = result[0] if result[0] is not None else 0
+    return max_id
+
 @app.route('/add_employee', methods=['POST'])
 def add_employee():
     # Lấy thông tin của employee từ form
@@ -189,11 +210,13 @@ def add_employee():
     phone_no = request.form['phone_no']
     email = request.form['email']
     address = request.form['address']
+    # Tạo ID mới cho employee
+    new_id = get_max_id() + 1
     # Thêm thông tin của employee vào MySQL
     cursor = mysql.connection.cursor()
     cursor.execute(
-        "INSERT INTO employee (lastname, firstname, department, age, phone_no, email, address) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-        (lastname, firstname, department, age, phone_no, email, address))
+        "INSERT INTO employee (id, lastname, firstname, department, age, phone_no, email, address) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+        (new_id, lastname, firstname, department, age, phone_no, email, address))
     mysql.connection.commit()
     cursor.close()
     # Trả về thông báo và địa chỉ URL cho việc hiển thị danh sách nhân viên

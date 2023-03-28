@@ -50,7 +50,7 @@
                     <div class="popup" id="popup">
                         <div class="popup-content">
                             <p>Are you sure you want to delete?</p>
-                            <button class="ok-btn" id="ok-btn">OK</button>
+                            <button class="ok-btn" onclick="deleteEmployee()">OK</button>
                             <button class="cancel-btn" onclick="hidePopup()">Cancel</button>
                             <button class="close-btn" onclick="hidePopup()" >x</button>
                         </div>
@@ -100,7 +100,7 @@
                                 <input type="email" id="email" name="email"><br><br>
                                 <label for="address">Address:</label>
                                 <input type="text" id="address" name="address"><br><br>
-                                <button type="button" class="ok-btn1" onclick="submitEditForm()">OK</button>
+                                <button type="button" class="ok-btn1" onclick="submitAddForm()">Add</button>
                                 <button type="button" class="cancel-btn1" onclick="hideAddPopup()">Cancel</button>
                                 <button type="button" class="close-btn1" onclick="hideAddPopup()">x</button>
                             </form>
@@ -125,10 +125,6 @@
                            })
                            .catch(error => console.error(error))
                         }
-                        document.getElementById("ok-btn").addEventListener("click", function() {
-                            deleteEmployee();
-                            hidePopup();
-                        });
                         function hidePopup() {
                             var popup = document.getElementById("popup");
                             popup.style.display = "none";
@@ -218,7 +214,17 @@
                                 .catch(error => console.error(error))
                         }
                         document.querySelector("#add-popup .ok-btn1").addEventListener("click", function(event) {
+                            // Get the employee ID element
+                            var employeeIdElement = document.getElementById("employee_id");
+                            // Get the last employee ID from the table
+                            var lastEmployeeId = document.querySelector("#employee_list tbody tr:last-child td:first-child").innerHTML;
+                            // Convert the last employee ID to a number and increment by 1
+                            var newEmployeeId = parseInt(lastEmployeeId) + 1;
+                            // Set the new employee ID in the form
+                            employeeIdElement.value = newEmployeeId;
+                            // Submit the form
                             submitAddForm();
+                            // Hide the popup
                             hideAddPopup();
                         });
 	                </script>
