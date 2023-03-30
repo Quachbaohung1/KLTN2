@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
 {% block title %}User{% endblock %}
 {% block content %}
-    <h2>User Information</h2>
+    <h2>Employee Information</h2>
         {% if employee %}
             {% for user in employee %}
                 <div>
@@ -228,7 +228,37 @@
                             hideAddPopup();
                         });
 	                </script>
+
                 </div>
+                <div>
+                        <input type="file" id="inputFile">
+                        <!--<button onclick="importFile()">Import File</button>-->
+                </div>
+                <script type="text/javascript">
+                        function importFile() {
+                            var input = document.getElementById("inputFile");
+                            var file = input.files[0];
+                            var reader = new FileReader();
+                            reader.onload = function(event) {
+                                var data = event.target.result;
+                                var workbook = XLSX.read(data, { type: "binary" });
+                                var jsonData = workbook_to_json(workbook);
+                                console.log(jsonData);
+                            };
+                            reader.readAsBinaryString(file);
+                        }
+
+                        function workbook_to_json(workbook) {
+                            var result = {};
+                            workbook.SheetNames.forEach(function(sheetName) {
+                                var roa = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[sheetName]);
+                                if (roa.length > 0) {
+                                    result[sheetName] = roa;
+                                }
+                            });
+                            return result;
+                        }
+                </script>
             {% endfor %}
         {% else %}
             <p>No user found.</p>
