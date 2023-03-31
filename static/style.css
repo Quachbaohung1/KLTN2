@@ -146,7 +146,7 @@ body.loggedin {
   margin: 0 0 10px 0;
 }
 
-.btn, .btn1, .btn2 {
+.btn1, .btn2 {
     background-color: #4a536e;
     border: none;
     color: white;
@@ -156,6 +156,21 @@ body.loggedin {
     display: inline-block;
     font-size: 16px;
     margin: -18px 6px;
+    cursor: pointer;
+    border-radius: 50px;
+    float: right;
+}
+
+.btn {
+    background-color: #4a536e;
+    border: none;
+    color: white;
+    padding: 8px 18px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: -1px 6px;
     cursor: pointer;
     border-radius: 50px;
     float: right;
