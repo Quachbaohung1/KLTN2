@@ -75,12 +75,13 @@ def get_max_employee_id(cursor):
 def register():
     # Output message if something goes wrong...
     msg = ''
-    # Check if "username", "password" and "email" POST requests exist (user submitted form)
-    if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
+    # Check if "username", "password", "confirm-password" POST requests exist (user submitted form)
+    if request.method == 'POST' and 'username' in request.form and 'password' in request.form and 'confirm-password' in request.form:
         # Create variables for easy access
         username = request.form['username']
         # Hash password using SHA256
         password = hashlib.sha256(request.form['password'].encode()).hexdigest()
+        confirm_password = hashlib.sha256(request.form['confirm-password'].encode()).hexdigest()
         is_active = 1
         # Get the maximum employee_id in the database
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -98,6 +99,16 @@ def register():
             msg = 'Username must contain only characters and numbers!'
         elif not username or not password:
             msg = 'Please fill out the form!'
+        elif password != confirm_password:
+            msg = 'Passwords do not match!'
+        elif len(password) < 8:
+            msg = 'Password must be at least 8 characters long!'
+        elif not any(char.isdigit() for char in password):
+            msg = 'Password must contain at least one number!'
+        elif not any(char.isupper() for char in password):
+            msg = 'Password must contain at least one uppercase letter!'
+        elif not any(char.islower() for char in password):
+            msg = 'Password must contain at least one lowercase letter!'
         else:
             # Account doesn't exist and the form data is valid, now insert new account into accounts table
             cursor.execute('INSERT INTO accounts VALUES ( NULL, %s, %s, %s, %s)', (username, password, employee_id, is_active,))
