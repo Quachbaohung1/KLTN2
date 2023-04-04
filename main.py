@@ -3,17 +3,19 @@ from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
 import hashlib
+from datetime import datetime
 
 app = Flask(__name__)
 
 # Change this to your secret key (can be anything, it's for extra protection)
-app.secret_key = 'Baohung0303'
+app.secret_key = ''
 
 # Enter your database connection details below
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'Bungmobanhbao0303'
-app.config['MYSQL_DB'] = 'login'
+app.config['MYSQL_HOST'] = '127.0.0.1'
+app.config['MYSQL_PORT'] = 9090
+app.config['MYSQL_USER'] = 'Hungqb'
+app.config['MYSQL_PASSWORD'] = '123456'
+app.config['MYSQL_DB'] = 'khoaluan'
 
 # Intialize MySQL
 mysql = MySQL(app)
@@ -66,7 +68,7 @@ def logout():
 
 # Get the maximum employee_id in the database
 def get_max_employee_id(cursor):
-    cursor.execute('SELECT MAX(employee_id) FROM accounts')
+    cursor.execute('SELECT MAX(employee_id) FROM Auth_user')
     result = cursor.fetchone()
     max_employee_id = result['MAX(employee_id)'] if result['MAX(employee_id)'] else 0
     return max_employee_id
@@ -76,21 +78,24 @@ def register():
     # Output message if something goes wrong...
     msg = ''
     # Check if "username", "password", "confirm-password" POST requests exist (user submitted form)
-    if request.method == 'POST' and 'username' in request.form and 'password' in request.form and 'confirm-password' in request.form:
+    if request.method == 'POST':
         # Create variables for easy access
         username = request.form['username']
         # Hash password using SHA256
-        password = hashlib.sha256(request.form['password'].encode()).hexdigest()
-        confirm_password = hashlib.sha256(request.form['confirm-password'].encode()).hexdigest()
+        password = request.form['password']
+        confirm_password = request.form['confirm-password']
         is_active = 1
         # Get the maximum employee_id in the database
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         max_employee_id = get_max_employee_id(cursor)
         # Generate a new employee_id
         employee_id = max_employee_id + 1
+        failed_login_attempts = 0
+        last_login_time = datetime.now()
+        password_reset_token = hashlib.sha256(request.form['password'].encode()).hexdigest()
         # Check if account exists using MySQL
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM accounts WHERE username = %s', (username,))
+        cursor.execute('SELECT * FROM Auth_user WHERE username = %s', (username,))
         account = cursor.fetchone()
         # If account exists show error and validation checks
         if account:
@@ -111,7 +116,8 @@ def register():
             msg = 'Password must contain at least one lowercase letter!'
         else:
             # Account doesn't exist and the form data is valid, now insert new account into accounts table
-            cursor.execute('INSERT INTO accounts VALUES ( NULL, %s, %s, %s, %s)', (username, password, employee_id, is_active,))
+            cursor.execute('INSERT INTO Auth_user VALUES (NULL, %s, %s, %s, %s, %s, %s, %s)',
+                (username, password, employee_id, is_active, failed_login_attempts, last_login_time, password_reset_token,))
             mysql.connection.commit()
             msg = 'You have successfully registered!'
     elif request.method == "POST":
