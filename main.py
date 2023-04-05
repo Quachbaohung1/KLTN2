@@ -8,7 +8,7 @@ from datetime import datetime
 app = Flask(__name__)
 
 # Change this to your secret key (can be anything, it's for extra protection)
-app.secret_key = ''
+app.secret_key = 'Baohung0303'
 
 # Enter your database connection details below
 app.config['MYSQL_HOST'] = '127.0.0.1'
@@ -33,13 +33,13 @@ def login():
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
         # Check if account exists using MySQL
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM accounts WHERE username = %s ', (username,))
+        cursor.execute('SELECT * FROM Auth_user WHERE username = %s ', (username,))
         # Fetch one record and return result
         account = cursor.fetchone()
         # If account exists in accounts table in out database
         if account:
             # Get the stored hashed password from the account data
-            stored_password = account['password']
+            stored_password = account['Password_reset_token']
             # Compare the hashed password input by the user with the stored hashed password
             if hashed_password == stored_password:
                 # Create session data, we can access this data in other routes
@@ -54,7 +54,6 @@ def login():
             msg = 'Invalid username or password!'
     # Show the login form with message (if any)
     return render_template('index.html', msg=msg)
-
 
 @app.route('/login/logout')
 def logout():
