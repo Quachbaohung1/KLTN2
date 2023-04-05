@@ -3,7 +3,7 @@ from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
 import hashlib
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -19,6 +19,7 @@ app.config['MYSQL_DB'] = 'khoaluan'
 
 # Intialize MySQL
 mysql = MySQL(app)
+
 
 @app.route('/login/', methods=["GET", "POST"])
 def login():
@@ -36,22 +37,46 @@ def login():
         cursor.execute('SELECT * FROM Auth_user WHERE username = %s ', (username,))
         # Fetch one record and return result
         account = cursor.fetchone()
-        # If account exists in accounts table in out database
+        # If account exists in accounts table in our database
         if account:
-            # Get the stored hashed password from the account data
-            stored_password = account['Password_reset_token']
-            # Compare the hashed password input by the user with the stored hashed password
-            if hashed_password == stored_password:
-                # Create session data, we can access this data in other routes
-                session['loggedin'] = True
-                session['id'] = account['id']
-                session['username'] = account['username']
-                # Redirect to home page
-                return redirect(url_for('home'))
+            # Check if the account is locked
+            if account['is_active'] == 0 and (datetime.now() - account['Last_login_time']) < timedelta(minutes=1):
+                msg = 'Your account has been locked!'
             else:
-                msg = 'Incorrect username/password!'
+                # Get the stored hashed password from the account data
+                stored_password = account['Password_reset_token']
+                # Get the failed login attempts count from the account data
+                Failed_login_attempts = account['Failed_login_attemps']
+                # Compare the hashed password input by the user with the stored hashed password
+                if hashed_password == stored_password:
+                    # Reset failed login attempts and update last login time
+                    cursor.execute(
+                        'UPDATE Auth_user SET Failed_login_attemps = 0, Last_login_time = %s, is_active = 1 WHERE id = %s',
+                        (datetime.now(), account['id'],))
+                    mysql.connection.commit()
+                    # Create session data, we can access this data in other routes
+                    session['loggedin'] = True
+                    session['id'] = account['id']
+                    session['username'] = account['username']
+                    # Redirect to home page
+                    return redirect(url_for('home'))
+                else:
+                    # Increment failed login attempts
+                    Failed_login_attempts += 1
+                    cursor.execute('UPDATE Auth_user SET Failed_login_attemps = Failed_login_attemps + 1 WHERE id = %s',
+                                   (account['id'],))
+                    mysql.connection.commit()
+                    # Check if the account should be locked
+                    if account['Failed_login_attemps'] >= 4:
+                        # Lock the account
+                        cursor.execute('UPDATE Auth_user SET is_active = 0 WHERE id = %s', (account['id'],))
+                        mysql.connection.commit()
+                        msg = 'Your account has been locked!'
+                    else:
+                        msg = f'Incorrect username/password! Failed login attempts: {Failed_login_attempts}'
         else:
             msg = 'Invalid username or password!'
+
     # Show the login form with message (if any)
     return render_template('index.html', msg=msg)
 
@@ -140,7 +165,7 @@ def profile():
     if 'loggedin' in session:
         # We need all the account info for the user, so we can display it on the profile page
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM accounts WHERE id = %s', (session['id'],))
+        cursor.execute('SELECT * FROM Employee WHERE id = %s', (session['id'],))
         account = cursor.fetchone()
         # Show the profile page with account info
         return render_template('profile.html', account=account)
@@ -152,7 +177,7 @@ def load_users():
     # Check if user is logged-in
     if 'loggedin' in session:
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM employee')
+        cursor.execute('SELECT Employee.id AS id, Employee.FirstName AS firstname, Employee.LastName AS lastname, Role.RoleName as role, Department.Name AS department, Employee.Age AS age, Employee.Phone_no AS phone_no, Employee.Email_Address AS email, Employee.Address AS address FROM Employee LEFT JOIN Department ON Employee.Department_ID = Department.id LEFT JOIN Role ON Employee.RoleID=Role.id')
         employee = cursor.fetchall()
         return render_template('user.html', employee=employee)
     return redirect(url_for('login'))
@@ -184,7 +209,7 @@ def delete_employee(id):
 def edit_employee(id):
     # Lấy thông tin của employee từ MySQL
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute("SELECT * FROM employee WHERE id = %s", [id])
+    cursor.execute("SELECT * FROM Employee WHERE id = %s", [id])
     employee = cursor.fetchone()
     cursor.close()
     if request.method == 'POST':
@@ -199,7 +224,7 @@ def edit_employee(id):
         # Cập nhật thông tin của employee vào MySQL
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute(
-            "UPDATE employee SET lastname=%s, firstname=%s, department=%s, age=%s, phone_no=%s, email=%s, address=%s WHERE id=%s",
+            "UPDATE Employee SET lastname=%s, firstname=%s, department=%s, age=%s, phone_no=%s, email=%s, address=%s WHERE id=%s",
             (lastname, firstname, department, age, phone_no, email, address, id))
         mysql.connection.commit()
         cursor.close()
@@ -210,7 +235,7 @@ def edit_employee(id):
 # Lấy số ID lớn nhất trong danh sách nhân viên
 def get_max_id():
     cursor = mysql.connection.cursor()
-    cursor.execute("SELECT MAX(id) FROM employee")
+    cursor.execute("SELECT MAX(id) FROM Employee")
     result = cursor.fetchone()
     cursor.close()
     max_id = result[0] if result[0] is not None else 0
@@ -231,7 +256,7 @@ def add_employee():
     # Thêm thông tin của employee vào MySQL
     cursor = mysql.connection.cursor()
     cursor.execute(
-        "INSERT INTO employee (id, lastname, firstname, department, age, phone_no, email, address) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+        "INSERT INTO Employee (id, lastname, firstname, department, age, phone_no, email, address) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
         (new_id, lastname, firstname, department, age, phone_no, email, address))
     mysql.connection.commit()
     cursor.close()
