@@ -52,8 +52,8 @@
                             <td>{{ user.firstname }}</td>
                         </tr>
                         <tr>
-                            <td>Role:</td>
-                            <td>{{ user.role }}</td>
+                            <td>Job:</td>
+                            <td>{{ user.job }}</td>
                         </tr>
                         <tr>
                             <td>Department:</td>
@@ -76,7 +76,7 @@
                             <td>{{ user.address }}</td>
                         </tr>
                     </table>
-                    <!--Create 3 btn Add, Fix, Delete-->
+                    <!--Create 2 btn Fix, Delete-->
                     <tr>
 
                         <button type="button" class="btn1" onclick="showEditPopup({{ user.id }})">Edit</button>
@@ -100,6 +100,8 @@
                                 <input type="text" id="lastname" name="lastname"><br><br>
                                 <label for="firstname">Firstname:</label>
                                 <input type="text" id="firstname" name="firstname"><br><br>
+                                <label for="job">Job:</label>
+                                <input type="text" id="job" name="job"><br><br>
                                 <label for="department">Department:</label>
                                 <input type="text" id="department" name="department"><br><br>
                                 <label for="age">Age:</label>
@@ -175,13 +177,14 @@
                             // Get the form element
                             var form = document.getElementById("edit-form");
                             // Get the user data from the server using an AJAX call
-                            fetch("/edit_employee/" + employeeId)
+                            fetch(`/edit_employee/${id}`)
                                 .then(response => response.json())
                                 .then(data => {
                                     // Set the form values to the user data
                                     form.elements["id"].value = data.id;
                                     form.elements["lastname"].value = data.lastname;
                                     form.elements["firstname"].value = data.firstname;
+                                    form.elements["job"].value = data.job;
                                     form.elements["department"].value = data.department;
                                     form.elements["age"].value = data.age;
                                     form.elements["phone_no"].value = data.phone_no;
@@ -202,7 +205,7 @@
                             // Get the form data
                             var formData = new FormData(form);
                             // Send the form data to the server using an AJAX call
-                            fetch("/edit_employee/" + employeeId, {
+                            fetch(`/edit_employee/${employeeId}`, {
                                 method: "POST",
                                 body: formData
                             })

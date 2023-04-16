@@ -1,6 +1,136 @@
 {% extends 'layout.html' %}
 {% block title %}Home{% endblock %}
 {% block content %}
-<h2>Home Page</h2>
-<p>Welcome back, {{ username }}!</p>
+    <h2>Home Page</h2>
+    <div>
+        <div class="employee-profile">
+            <div class="avatar">
+                <img src="logo.jpg" alt="Employee Avatar">
+                <div class="upload">
+                    <i class="fas fa-camera"></i>
+                    <span>Upload Avatar</span>
+                </div>
+            </div>
+            <div class="employee-info">
+                <table>
+                    <tr>
+                        <td>Name:</td>
+                        <td>{{ account['password'] }}</td>
+                    </tr>
+                    <tr>
+                        <td>Company Name:</td>
+                        <td>{{ account['department'] }}</td>
+                    </tr>
+                    <tr>
+                        <td>Department:</td>
+                        <td>{{ account['department'] }}</td>
+                    </tr>
+                    <tr>
+                        <td>Job:</td>
+                        <td>{{ account['job_title'] }}</td>
+                    </tr>
+                    <tr>
+                        <td>Role:</td>
+                        <td>{{ account['role'] }}</td>
+                    </tr>
+                </table>
+                <td for="month-year">Select Month/Year:</td>
+                <input type="month" id="month-year" name="month_year">
+                <button type="button" id="update-chart">Update Chart</button>
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="work-time-chart"></canvas>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var chart;
+            $.ajax({
+                url: '/login/get_work_time_data',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    var workTimeData = data;
+                    var ctx = document.getElementById('work-time-chart').getContext('2d');
+                    var chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: workTimeData.labels,
+                            datasets: [{
+                                label: 'Working Hour This Month',
+                                data: workTimeData.data,
+                                borderColor: 'rgb(75, 192, 192)',
+                                backgroundColor: 'rgb(75, 192, 192)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Hour'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        display: true,
+                                    }
+                                }
+                            }
+                        }
+                    });
+                },
+                error: function(xhr, textStatus, errorThrown) {
+                    console.log('Error:', errorThrown);
+                }
+            });
+            function updateChart() {
+                var monthYear = $('#month-year').val();
+                $.ajax({
+                    url: '/login/get_work_time_data?month_year=' + monthYear,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        var workTimeData = data;
+                        chart.data.labels = workTimeData.labels;
+                        chart.data.datasets[0].data = workTimeData.data;
+                        chart.update();
+                    },
+                    error: function(xhr, textStatus, errorThrown) {
+                        console.log('Error:', errorThrown);
+                    }
+                });
+            }
+
+            $('#update-chart').click(function() {
+                updateChart();
+            });
+            updateChart();
+        });
+
+        const uploadBtn = document.querySelector('.upload');
+        const avatarImg = document.querySelector('.avatar img');
+
+        uploadBtn.addEventListener('click', function() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = function() {
+                const file = this.files[0];
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = function() {
+                    avatarImg.src = reader.result;
+                };
+            };
+            input.click();
+        });
+    </script>
 {% endblock %}

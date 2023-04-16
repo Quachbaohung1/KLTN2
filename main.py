@@ -5,7 +5,7 @@ import re
 import hashlib
 from datetime import datetime, timedelta
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/login')
 
 # Change this to your secret key (can be anything, it's for extra protection)
 app.secret_key = 'Baohung0303'
@@ -20,6 +20,24 @@ app.config['MYSQL_DB'] = 'khoaluan'
 # Intialize MySQL
 mysql = MySQL(app)
 
+
+@app.route('/')
+def index():
+    # Lấy dữ liệu từ database
+    cur = mysql.connection.cursor()
+    cur.execute("CALL GetHoursByMonthForEmployee('2023-06',1);")
+    data = cur.fetchall()
+    cur.close()
+
+    # Chuyển đổi dữ liệu sang định dạng phù hợp cho việc vẽ biểu đồ
+    labels = []
+    work_time_data = []
+    for row in data:
+        labels.append(row[0])
+        work_time_data.append(row[1])
+    # Truyền dữ liệu cho template và render biểu đồ
+    return render_template('index.html', labels=labels, work_time_data=work_time_data)
+    return app.send_static_file('logo.jpg')
 
 @app.route('/login/', methods=["GET", "POST"])
 def login():
@@ -152,11 +170,13 @@ def register():
 
 @app.route('/login/home')
 def home():
-    # Check if user is logged-in
+# Check if user is logged-in
     if 'loggedin' in session:
-        # User is logged-in show them the home page
-        return render_template('home.html', username=session['username'])
-    # User is not logged-in redirect to login page
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(
+            'select Employee.id as id, Employee.FirstName as firstname, Employee.LastName as lastname, info.jobname as job, info.departmentname as department, Employee.Age as age, Employee.Phone_no as phone_no, Employee.Email_Address as email, Employee.Address as address from Employee left join ( select Job.id as id, Job.Name as jobname, Department.Name as departmentname from Job left join Department on Job.department_id=Department.id ) as info on Employee.Job_ID=info.id')
+        account = cursor.fetchone()
+        return render_template('home.html', account=account)
     return redirect(url_for('login'))
 
 @app.route('/login/profile')
@@ -177,7 +197,7 @@ def load_users():
     # Check if user is logged-in
     if 'loggedin' in session:
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT Employee.id AS id, Employee.FirstName AS firstname, Employee.LastName AS lastname, Role.RoleName as role, Department.Name AS department, Employee.Age AS age, Employee.Phone_no AS phone_no, Employee.Email_Address AS email, Employee.Address AS address FROM Employee LEFT JOIN Department ON Employee.Department_ID = Department.id LEFT JOIN Role ON Employee.RoleID=Role.id')
+        cursor.execute('select Employee.id as id, Employee.FirstName as firstname, Employee.LastName as lastname, info.jobname as job, info.departmentname as department, Employee.Age as age, Employee.Phone_no as phone_no, Employee.Email_Address as email, Employee.Address as address from Employee left join ( select Job.id as id, Job.Name as jobname, Department.Name as departmentname from Job left join Department on Job.department_id=Department.id ) as info on Employee.Job_ID=info.id')
         employee = cursor.fetchall()
         return render_template('user.html', employee=employee)
     return redirect(url_for('login'))
@@ -209,13 +229,14 @@ def delete_employee(id):
 def edit_employee(id):
     # Lấy thông tin của employee từ MySQL
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute("SELECT * FROM Employee WHERE id = %s", [id])
+    cursor.execute("select Employee.id as id, Employee.FirstName as firstname, Employee.LastName as lastname, info.jobname as job, info.departmentname as department, Employee.Age as age, Employee.Phone_no as phone_no, Employee.Email_Address as email, Employee.Address as address from Employee left join ( select Job.id as id, Job.Name as jobname, Department.Name as departmentname from Job left join Department on Job.department_id=Department.id ) as info on Employee.Job_ID=info.id where Employee.id = %s ", [id])
     employee = cursor.fetchone()
     cursor.close()
     if request.method == 'POST':
         # Lấy thông tin employee từ form
         lastname = request.form['lastname']
         firstname = request.form['firstname']
+        job = request.form['job']
         department = request.form['department']
         age = request.form['age']
         phone_no = request.form['phone_no']
@@ -224,8 +245,8 @@ def edit_employee(id):
         # Cập nhật thông tin của employee vào MySQL
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute(
-            "UPDATE Employee SET lastname=%s, firstname=%s, department=%s, age=%s, phone_no=%s, email=%s, address=%s WHERE id=%s",
-            (lastname, firstname, department, age, phone_no, email, address, id))
+            "UPDATE Employee LEFT JOIN (SELECT Job.id as id, Job.Name as jobname, Department.Name as departmentname FROM Job LEFT JOIN Department ON Job.department_id = Department.id) as info ON Employee.Job_ID = info.id SET Employee.FirstName = %s, Employee.LastName = %s, Employee.Age = %s, Employee.Phone_no = %s, Employee.Email_Address = %s, Employee.Address = %s, Employee.Job_ID = %s WHERE Employee.id = %s",
+            (lastname, firstname, job, department, age, phone_no, email, address, id))
         mysql.connection.commit()
         cursor.close()
         message = f"Employee information id {id} updated successfully"
@@ -263,6 +284,18 @@ def add_employee():
     # Trả về thông báo và địa chỉ URL cho việc hiển thị danh sách nhân viên
     message = f"Employee {firstname} {lastname} added successfully"
     return jsonify({"message": message, "url": "/employee_list"})
+
+#ẽ biểu đồ
+@app.route('/login/get_work_time_data')
+def get_work_time_data():
+    input_month_year = request.args.get('month_year') or '2023-04'
+    employee_id = session.get('employee_id')
+    cursor = mysql.connection.cursor()
+    query = "CALL GetHoursByMonthForEmployee(%s, %s)"
+    cursor.execute(query, (input_month_year, employee_id))
+    work_time_data = cursor.fetchall()
+    cursor.close()
+    return jsonify(work_time_data)
 
 if __name__ == "__main__":
     app.run(debug=True)
