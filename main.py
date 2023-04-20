@@ -91,5 +91,6 @@ def home():
         return render_template('home.html', account=account)
     return redirect(url_for('login'))
 
+
 if __name__ == "__main__":
     app.run(debug=True)
