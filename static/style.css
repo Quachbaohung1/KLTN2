@@ -1231,3 +1231,209 @@ h6 {
   font-size: 13px;
   color: #012970;
 }
+
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+.wrapper{
+  width: 450px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+}
+.wrapper header{
+  display: flex;
+  align-items: center;
+  padding: 25px 30px 10px;
+  justify-content: space-between;
+}
+header .icons{
+  display: flex;
+}
+header .icons span{
+  height: 38px;
+  width: 38px;
+  margin: 0 1px;
+  cursor: pointer;
+  color: #878787;
+  text-align: center;
+  line-height: 38px;
+  font-size: 1.9rem;
+  user-select: none;
+  border-radius: 50%;
+}
+.icons span:last-child{
+  margin-right: -10px;
+}
+header .icons span:hover{
+  background: #f2f2f2;
+}
+header .current-date{
+  font-size: 1.45rem;
+  font-weight: 500;
+}
+.calendar{
+  padding: 20px;
+}
+.calendar ul{
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  text-align: center;
+}
+.calendar .days{
+  margin-bottom: 20px;
+}
+.calendar li{
+  color: #333;
+  width: calc(100% / 7);
+  font-size: 1.07rem;
+}
+.calendar .weeks li{
+  font-weight: 500;
+  cursor: default;
+}
+.calendar .days li{
+  z-index: 1;
+  cursor: pointer;
+  position: relative;
+  margin-top: 30px;
+}
+.days li.inactive{
+  color: #aaa;
+}
+.days li.active{
+  color: #fff;
+}
+.days li::before{
+  position: absolute;
+  content: "";
+  left: 50%;
+  top: 50%;
+  height: 40px;
+  width: 40px;
+  z-index: -1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.days li.active::before{
+  background: #9B59B6;
+}
+.days li:not(.active):hover::before{
+  background: #f2f2f2;
+}
+.btn-today {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 5px 5px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin-top: 5px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.ibox {
+  position: relative;
+  margin-bottom: 25px;
+  background-color: #fff;
+  -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1); }
+  .ibox .ibox-head {
+    padding: 0 20px;
+    border-bottom: 1px solid #eee;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: justify;
+    -webkit-justify-content: space-between;
+    -ms-flex-pack: justify;
+    justify-content: space-between;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    height: 50px; }
+    .ibox .ibox-head .ibox-title {
+      font-size: 16px;
+      font-weight: 600; }
+      .ibox .ibox-head .ibox-title small {
+        font-weight: 400;
+        font-size: 13px;
+        color: #777; }
+        .ibox .ibox-head .ibox-title small a {
+          color: inherit; }
+    .ibox .ibox-head .ibox-tools {
+      position: relative; }
+      .ibox .ibox-head .ibox-tools > a {
+        color: #aaa;
+        font-size: 14px;
+        padding: 0 6px; }
+        .ibox .ibox-head .ibox-tools > a:hover {
+          color: #6d7c85; }
+    .ibox .ibox-head .nav-tabs {
+      margin: 0;
+      border: 0;
+      height: 100%; }
+      .ibox .ibox-head .nav-tabs .nav-link {
+        height: 100%;
+        padding: .9rem 1rem; }
+  .ibox .ibox-body {
+    padding: 15px 20px 20px 20px; }
+  .ibox .ibox-footer {
+    padding: 10px 0;
+    border-top: 1px solid #eee; }
+  .ibox.ibox-fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    z-index: 1005; }
+    .ibox.ibox-fullscreen .fullscreen-link > i::before {
+      content: "\f066"; }
+  .ibox.collapsed-mode .ibox-collapse > i::before {
+    content: "\f067"; }
+
+.ibox-primary .ibox-head {
+  color: #fff;
+  background-color: #3498db; }
+  .ibox-primary .ibox-head .ibox-tools > a, .ibox-primary .ibox-head .ibox-tools > a:hover {
+    color: #fff; }
+
+.ibox-success .ibox-head {
+  color: #fff;
+  background-color: #2ecc71; }
+  .ibox-success .ibox-head .ibox-tools > a, .ibox-success .ibox-head .ibox-tools > a:hover {
+    color: #fff; }
+
+.ibox-info .ibox-head {
+  color: #fff;
+  background-color: #23B7E5; }
+  .ibox-info .ibox-head .ibox-tools > a, .ibox-info .ibox-head .ibox-tools > a:hover {
+    color: #fff; }
+
+.ibox-warning .ibox-head {
+  color: #fff;
+  background-color: #F39C12; }
+  .ibox-warning .ibox-head .ibox-tools > a, .ibox-warning .ibox-head .ibox-tools > a:hover {
+    color: #fff; }
+
+.ibox-danger .ibox-head {
+  color: #fff;
+  background-color: #e74c3c; }
+  .ibox-danger .ibox-head .ibox-tools > a, .ibox-danger .ibox-head .ibox-tools > a:hover {
+    color: #fff; }
+
+.ibox-grey .ibox-head {
+  color: #fff;
+  background-color: #bdc3c7; }
+  .ibox-grey .ibox-head .ibox-tools > a, .ibox-grey .ibox-head .ibox-tools > a:hover {
+    color: #fff; }
